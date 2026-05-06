@@ -1281,29 +1281,7 @@
         let globalTimerSeconds = 900; // 15 minutos por defecto
 
         function iniciarTemporizadorGlobal() {
-            if (globalTimerInterval) clearInterval(globalTimerInterval);
-            globalTimerSeconds = 900;
-
-            let $timerDiv = $("#globalAutoTimer");
-            if ($timerDiv.length === 0) {
-                // UI del timer global
-                $timerDiv = $('<div id="globalAutoTimer" class="custom-timer draggable-item" style="cursor: move; box-shadow: 0 0 20px #FFD700; border: 3px solid white; z-index: 50; text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;"></div>');
-                $("body").append($timerDiv);
-                $timerDiv.draggable();
-                $timerDiv.css({ bottom: '2%', top: 'auto', left: '50%', transform: 'translateX(-50%)', fontSize: '3.5vh', padding: '5px 15px' });
-            }
-            $timerDiv.text(formatTime(globalTimerSeconds));
-
-            globalTimerInterval = setInterval(() => {
-                globalTimerSeconds--;
-                if (globalTimerSeconds <= 0) {
-                    clearInterval(globalTimerInterval);
-                    $timerDiv.text("00:00");
-                    mostrarPodio();
-                } else {
-                    $timerDiv.text(formatTime(globalTimerSeconds));
-                }
-            }, 1000);
+            // Temporizador automático de 15 minutos desactivado a petición del usuario
         }
 
         // CONTADORES CUSTOMIZADOS
