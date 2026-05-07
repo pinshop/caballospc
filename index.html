@@ -723,6 +723,7 @@
         <p>Escribe el <b>@usuario</b> en vivo:</p>
         <input type="text" id="uniqueIdInput" placeholder="@nombre">
         <input type="button" id="connectButton" value="Conectar">
+        <input type="button" id="connectTikfinityBtn" value="Conectar TikFinity">
         <input type="button" id="cameraButton" value="📷">
         <input type="button" id="camSettingsBtn" value="⚙️">
         <input type="button" id="fullscreenButton" value="⤢">
@@ -903,6 +904,7 @@
         let connection = new TikTokIOConnection("https://tiktok-chat-reader-nh9k.onrender.com");
 
         $("#connectButton").click(connect);
+        $("#connectTikfinityBtn").click(connectTikfinity);
         $("#uniqueIdInput").on("keyup", e => { if (e.key === "Enter") connect(); });
 
         let camRot = 0;
@@ -1028,8 +1030,26 @@
             let username = $("#uniqueIdInput").val().trim().replace("@", "");
             if (!username) return alert("Escribe un usuario.");
             $("#stateText").html("Conectando...");
+            
+            connection = new TikTokIOConnection("https://tiktok-chat-reader-nh9k.onrender.com");
+            setupConnectionEvents();
+
             connection.connect(username, { enableExtendedGiftInfo: true }).then(state => {
                 $("#stateText").html(`Conectado a @${username}`);
+            }).catch(err => {
+                $("#stateText").html("Error: " + err);
+            });
+        }
+
+        function connectTikfinity() {
+            let username = $("#uniqueIdInput").val().trim().replace("@", "");
+            $("#stateText").html("Conectando a TikFinity...");
+            
+            connection = new TikFinityConnection("ws://localhost:21213/");
+            setupConnectionEvents();
+
+            connection.connect(username).then(state => {
+                $("#stateText").html(`Conectado a TikFinity`);
             }).catch(err => {
                 $("#stateText").html("Error: " + err);
             });
@@ -1087,8 +1107,9 @@
             setTimeout(() => div.remove(), 3000);
         }
 
-        connection.on("chat", data => {
-            createComment(data.nickname, data.profilePictureUrl, data.comment);
+        function setupConnectionEvents() {
+            connection.on("chat", data => {
+                createComment(data.nickname, data.profilePictureUrl, data.comment);
 
             const text = data.comment.toLowerCase();
             for (const [name, code] of Object.entries(countryMap)) {
@@ -1236,9 +1257,11 @@
             }
         });
 
-        connection.on('share', data => {
-            // Compartir live NO suma puntos.
-        });
+            connection.on('share', data => {
+                // Compartir live NO suma puntos.
+            });
+        }
+        setupConnectionEvents();
 
         // === INICIALIZACIÓN DE PISTAS (CARRERA) ===
         const allFlags = ['colombia', 'guatemala', 'mexico', 'salvador', 'chile', 'nicaragua', 'cuba', 'dominicana', 'paraguay', 'ecuador', 'venezuela', 'bolivia', 'costarica', 'honduras', 'panama', 'uruguay', 'argentina', 'peru'];
@@ -1589,36 +1612,33 @@
             }
         });
 
-        // HACK: Mantener activo el canvas en segundo plano (pestaña minimizada o inactiva)
+        // HACK DEFINITIVO: Mantener activa la pestaña usando un Audio HTML5 y override de rAF
         (function() {
-            let audioCtx = null;
-            function startSilentAudio() {
-                try {
-                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    if (audioCtx.state === 'suspended') audioCtx.resume();
-                    const oscillator = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    gainNode.gain.value = 0; // 100% silencioso
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    oscillator.start();
-                    setTimeout(() => {
-                        oscillator.stop();
-                        startSilentAudio(); // Bucle constante para evitar suspensión
-                    }, 10000);
-                } catch (e) {
-                    console.log("No se pudo iniciar el audio de fondo", e);
-                }
+            // 1. Sobreescribir requestAnimationFrame para que las animaciones de jQuery/CSS no se pausen
+            // al minimizar, ya que rAF nativo se detiene por completo.
+            window.requestAnimationFrame = function(callback) {
+                return window.setTimeout(function() {
+                    callback(performance.now());
+                }, 1000 / 60);
+            };
+            window.cancelAnimationFrame = function(id) {
+                window.clearTimeout(id);
+            };
+
+            // 2. Elemento de audio HTML5 reproduciendo en bucle infinito
+            // Esto evita que el navegador ralentice los setTimeouts cuando la pestaña no está visible
+            const silentAudio = new Audio("data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
+            silentAudio.loop = true;
+            silentAudio.volume = 0.01;
+
+            function playSilentAudio() {
+                silentAudio.play().catch(e => console.log("Esperando interacción para audio de fondo..."));
+                document.removeEventListener('click', playSilentAudio);
+                document.removeEventListener('touchstart', playSilentAudio);
             }
-            
-            // Iniciar por primera vez (puede fallar si no hay interacción, pero lo intentamos)
-            startSilentAudio();
-            // Asegurarnos de iniciar con la primera interacción
-            document.addEventListener('click', () => {
-                if (!audioCtx || audioCtx.state === 'suspended') {
-                    startSilentAudio();
-                }
-            }, { once: true });
+
+            document.addEventListener('click', playSilentAudio);
+            document.addEventListener('touchstart', playSilentAudio);
         })();
 
         // TECLAS DE PRUEBA
