@@ -1109,13 +1109,13 @@
 
         function setupConnectionEvents() {
             connection.on("chat", data => {
-                createComment(data.nickname, data.profilePictureUrl, data.comment);
+                // createComment(data.nickname, data.profilePictureUrl, data.comment);
 
             const text = data.comment.toLowerCase();
             for (const [name, code] of Object.entries(countryMap)) {
                 if (text.includes(name)) {
                     userCountries[data.uniqueId] = code;
-                    mostrarAvisoPais(data.nickname, name);
+                    // mostrarAvisoPais(data.nickname, name);
                     break;
                 }
             }
@@ -1174,7 +1174,7 @@
                     if (userCountries[data.uniqueId] !== teamCode) {
                         userCountries[data.uniqueId] = teamCode;
                         const countryName = Object.keys(countryMap).find(k => countryMap[k] === teamCode) || teamCode;
-                        mostrarAvisoPais(data.nickname, countryName);
+                        // mostrarAvisoPais(data.nickname, countryName);
                     }
 
                     if (deltaCount > 0) {
@@ -1276,12 +1276,19 @@
         const $raceContainer = $("#raceContainer");
         $raceContainer.append('<div class="finish-line-pattern"></div>');
 
+        const teamToGiftId = Object.entries(giftToTeam).reduce((acc, [id, team]) => {
+            acc[team] = id;
+            return acc;
+        }, {});
+
         allFlags.forEach(code => {
             const giftImg = teamGifts[code];
+            const giftId = teamToGiftId[code] || "";
             $raceContainer.append(`
-        <div class="track flag-item" data-code="${code}" id="flag-${code}">
+        <div class="track flag-item" data-code="${code}" id="flag-${code}" style="order: 0;">
             <div class="start-line">
                 <img class="gift-icon" src="${giftImg}.png" alt="${giftImg}">
+                ${giftId ? `<span style="color: yellow; font-size: 1.5vh; margin-right: 5px; font-weight: bold; text-shadow: 1px 1px 2px black;">ID:${giftId}</span>` : ''}
                 <img class="flag-img" src="https://flagcdn.com/w160/${countryIso[code]}.png" alt="${code}">
                 <span class="counter">0</span>
             </div>
@@ -1444,6 +1451,20 @@
             checkLeader();
         }
 
+        function sortTracks() {
+            const tracks = $(".track").get();
+            tracks.sort((a, b) => {
+                const codeA = $(a).attr("data-code");
+                const codeB = $(b).attr("data-code");
+                const ptsA = horseGifts[codeA] || 0;
+                const ptsB = horseGifts[codeB] || 0;
+                return ptsB - ptsA; // Descending
+            });
+            tracks.forEach((track, index) => {
+                $(track).css("order", index);
+            });
+        }
+
         function updateRacePositions() {
             $(".track").each(function () {
                 let code = $(this).attr("data-code");
@@ -1452,6 +1473,7 @@
                 let percentage = (steps / 20) * 85;
                 $(this).find(".horse-wrapper").css("left", (10 + percentage) + "%");
             });
+            sortTracks();
         }
 
         function checkLeader() {
