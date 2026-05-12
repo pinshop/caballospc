@@ -45,13 +45,18 @@
         #zona {
             position: relative;
             margin: 80px auto 0;
-            width: 450px;      /* Formato más vertical inicial */
-            height: 800px;     /* Alto inicial */
-            min-width: 300px;  /* Ancho mínimo */
-            min-height: 400px; /* Alto mínimo */
+            width: 450px;
+            /* Formato más vertical inicial */
+            height: 800px;
+            /* Alto inicial */
+            min-width: 300px;
+            /* Ancho mínimo */
+            min-height: 400px;
+            /* Alto mínimo */
             max-width: 95vw;
             max-height: 85vh;
-            resize: both;      /* Permite redimensionar ancho y alto desde la esquina */
+            resize: both;
+            /* Permite redimensionar ancho y alto desde la esquina */
             background: linear-gradient(135deg, #1f0033 0%, #4c0080 100%);
             border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 25px;
@@ -363,13 +368,13 @@
             height: 100%;
             background-color: #fff;
             background-image:
-              linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000),
-              linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
+                linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000),
+                linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
             background-size: 20px 20px;
             background-position: 0 0, 10px 10px;
             z-index: 10;
             border-left: 2px solid #fff;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
             pointer-events: none;
         }
 
@@ -480,8 +485,13 @@
         }
 
         @keyframes slideName {
-            from { right: -20%; }
-            to { right: 100%; }
+            from {
+                right: -20%;
+            }
+
+            to {
+                right: 100%;
+            }
         }
 
         .flag-particle {
@@ -1030,7 +1040,7 @@
             let username = $("#uniqueIdInput").val().trim().replace("@", "");
             if (!username) return alert("Escribe un usuario.");
             $("#stateText").html("Conectando...");
-            
+
             connection = new TikTokIOConnection("https://tiktok-chat-reader-nh9k.onrender.com");
             setupConnectionEvents();
 
@@ -1044,7 +1054,7 @@
         function connectTikfinity() {
             let username = $("#uniqueIdInput").val().trim().replace("@", "");
             $("#stateText").html("Conectando a TikFinity...");
-            
+
             connection = new TikFinityConnection("ws://localhost:21213/");
             setupConnectionEvents();
 
@@ -1111,151 +1121,151 @@
             connection.on("chat", data => {
                 // createComment(data.nickname, data.profilePictureUrl, data.comment);
 
-            const text = data.comment.toLowerCase();
-            for (const [name, code] of Object.entries(countryMap)) {
-                if (text.includes(name)) {
-                    userCountries[data.uniqueId] = code;
-                    // mostrarAvisoPais(data.nickname, name);
-                    break;
-                }
-            }
-        });
-
-        // DETECCIÓN DE REGALOS (manejo robusto de ráfagas/progresivo)
-        const giftPoints = {
-            5655: 1, 7096: 1, 15231: 1, 15232: 1, 5269: 1, 7032: 1, 15933: 1, 5827: 1, 8239: 1,
-            5487: 7,
-            7934: 20, 5658: 20,
-            14488: 32, 5879: 30,
-            5582: 120, 12988: 120, 5660: 120, 6427: 100, 7569: 120,
-            11046: 1200
-        };
-        const giftProgress = {};
-
-        const giftToTeam = {
-            5655: 'colombia',
-            5269: 'guatemala',
-            19438: 'mexico',
-            6064: 'salvador',
-            15232: 'chile',
-            6788: 'nicaragua',
-            19441: 'cuba',
-            19439: 'dominicana',
-            6784: 'ecuador',
-            15231: 'venezuela',
-            15104: 'bolivia',
-            8239: 'costarica',
-            7096: 'honduras',
-            7032: 'panama',
-            5827: 'uruguay',
-            19446: 'argentina',
-            13651: 'peru',
-            58485: 'paraguay'
-        };
-
-        connection.on("gift", data => {
-            const giftId = Number(data.giftId);
-            const repeatCountRaw = Number(data.repeatCount);
-            const repeatCount = Number.isFinite(repeatCountRaw) && repeatCountRaw > 0 ? repeatCountRaw : 1;
-            const key = `${data.uniqueId}:${giftId}`;
-            const previous = giftProgress[key] || 0;
-            const deltaCount = Math.max(0, repeatCount - previous);
-
-            if (deltaCount > 0) {
-                giftProgress[key] = repeatCount;
-            }
-
-            try {
-                let isSpecificGift = false;
-
-                // Verificar si es un regalo específico para un equipo
-                if (giftToTeam[giftId]) {
-                    const teamCode = giftToTeam[giftId];
-                    if (userCountries[data.uniqueId] !== teamCode) {
-                        userCountries[data.uniqueId] = teamCode;
-                        const countryName = Object.keys(countryMap).find(k => countryMap[k] === teamCode) || teamCode;
-                        // mostrarAvisoPais(data.nickname, countryName);
+                const text = data.comment.toLowerCase();
+                for (const [name, code] of Object.entries(countryMap)) {
+                    if (text.includes(name)) {
+                        userCountries[data.uniqueId] = code;
+                        // mostrarAvisoPais(data.nickname, name);
+                        break;
                     }
+                }
+            });
+
+            // DETECCIÓN DE REGALOS (manejo robusto de ráfagas/progresivo)
+            const giftPoints = {
+                5655: 1, 7096: 1, 15231: 1, 15232: 1, 5269: 1, 7032: 1, 15933: 1, 5827: 1, 8239: 1,
+                5487: 7,
+                7934: 20, 5658: 20,
+                14488: 32, 5879: 30,
+                5582: 120, 12988: 120, 5660: 120, 6427: 100, 7569: 120,
+                11046: 1200
+            };
+            const giftProgress = {};
+
+            const giftToTeam = {
+                5655: 'colombia',
+                5269: 'guatemala',
+                19438: 'mexico',
+                6064: 'salvador',
+                15232: 'chile',
+                6788: 'nicaragua',
+                19441: 'cuba',
+                19439: 'dominicana',
+                6784: 'ecuador',
+                15231: 'venezuela',
+                15104: 'bolivia',
+                8239: 'costarica',
+                7096: 'honduras',
+                7032: 'panama',
+                5827: 'uruguay',
+                19446: 'argentina',
+                13651: 'peru',
+                58485: 'paraguay'
+            };
+
+            connection.on("gift", data => {
+                const giftId = Number(data.giftId);
+                const repeatCountRaw = Number(data.repeatCount);
+                const repeatCount = Number.isFinite(repeatCountRaw) && repeatCountRaw > 0 ? repeatCountRaw : 1;
+                const key = `${data.uniqueId}:${giftId}`;
+                const previous = giftProgress[key] || 0;
+                const deltaCount = Math.max(0, repeatCount - previous);
+
+                if (deltaCount > 0) {
+                    giftProgress[key] = repeatCount;
+                }
+
+                try {
+                    let isSpecificGift = false;
+
+                    // Verificar si es un regalo específico para un equipo
+                    if (giftToTeam[giftId]) {
+                        const teamCode = giftToTeam[giftId];
+                        if (userCountries[data.uniqueId] !== teamCode) {
+                            userCountries[data.uniqueId] = teamCode;
+                            const countryName = Object.keys(countryMap).find(k => countryMap[k] === teamCode) || teamCode;
+                            // mostrarAvisoPais(data.nickname, countryName);
+                        }
+
+                        if (deltaCount > 0) {
+                            addPointToFlag(teamCode, deltaCount); // 1 punto por cada unidad de este regalo
+                        }
+                        isSpecificGift = true;
+                    }
+
+                    if (isSpecificGift) return; // Si era regalo específico, ya sumó a su equipo
+
+                    // Regalos especiales
+                    if (giftId === 7168 && deltaCount > 0) {
+                        const myCode = userCountries[data.uniqueId];
+                        if (myCode) {
+                            $(".flag-item").each(function () {
+                                const code = $(this).attr("data-code");
+                                if (code !== myCode) {
+                                    $(this).find(".counter").text("0");
+                                }
+                            });
+                            checkLeader();
+                        }
+                        return;
+                    }
+
+                    if (giftId === 6646 && deltaCount > 0) {
+                        showFireworksMVP(data.nickname);
+                        return;
+                    }
+
+                    if (giftId === 7934 && deltaCount > 0) {
+                        showQuieremeRain(deltaCount);
+                    }
+
+                    // Fallback para equipos (requiere estar en un club)
+                    const code = userCountries[data.uniqueId];
+                    if (!code) return;
+
+                    const pointsPerGift = giftPoints[giftId];
+                    if (!pointsPerGift) return;
 
                     if (deltaCount > 0) {
-                        addPointToFlag(teamCode, deltaCount); // 1 punto por cada unidad de este regalo
+                        addPointToFlag(code, deltaCount * pointsPerGift);
+
+                        if (giftId === 5879 || pointsPerGift === 120) {
+                            new Audio('point.mp3').play().catch(e => console.log("Audio error:", e));
+                        } else if (pointsPerGift > 30) {
+                            new Audio('turbo.mp3').play().catch(e => console.log("Audio error:", e));
+                        }
                     }
-                    isSpecificGift = true;
-                }
-
-                if (isSpecificGift) return; // Si era regalo específico, ya sumó a su equipo
-
-                // Regalos especiales
-                if (giftId === 7168 && deltaCount > 0) {
-                    const myCode = userCountries[data.uniqueId];
-                    if (myCode) {
-                        $(".flag-item").each(function () {
-                            const code = $(this).attr("data-code");
-                            if (code !== myCode) {
-                                $(this).find(".counter").text("0");
-                            }
-                        });
-                        checkLeader();
+                } finally {
+                    // Cuando la plataforma marca fin de ráfaga, reiniciamos estado para próxima ráfaga.
+                    if (data.repeatEnd) {
+                        delete giftProgress[key];
                     }
-                    return;
                 }
+            });
 
-                if (giftId === 6646 && deltaCount > 0) {
-                    showFireworksMVP(data.nickname);
-                    return;
-                }
-
-                if (giftId === 7934 && deltaCount > 0) {
-                    showQuieremeRain(deltaCount);
-                }
-
-                // Fallback para equipos (requiere estar en un club)
+            let userLikes = {};
+            connection.on('like', data => {
                 const code = userCountries[data.uniqueId];
                 if (!code) return;
 
-                const pointsPerGift = giftPoints[giftId];
-                if (!pointsPerGift) return;
+                let previousLikes = userLikes[data.uniqueId] || 0;
+                let newLikes = previousLikes + data.likeCount;
 
-                if (deltaCount > 0) {
-                    addPointToFlag(code, deltaCount * pointsPerGift);
+                // Sum 1 point per 100 taps
+                let newPoints = Math.floor(newLikes / 100) - Math.floor(previousLikes / 100);
 
-                    if (giftId === 5879 || pointsPerGift === 120) {
-                        new Audio('point.mp3').play().catch(e => console.log("Audio error:", e));
-                    } else if (pointsPerGift > 30) {
-                        new Audio('turbo.mp3').play().catch(e => console.log("Audio error:", e));
-                    }
+                if (newPoints > 0) {
+                    addPointToFlag(code, newPoints);
                 }
-            } finally {
-                // Cuando la plataforma marca fin de ráfaga, reiniciamos estado para próxima ráfaga.
-                if (data.repeatEnd) {
-                    delete giftProgress[key];
+                userLikes[data.uniqueId] = newLikes;
+            });
+
+            connection.on('follow', data => {
+                const code = userCountries[data.uniqueId];
+                if (code) {
+                    addPointToFlag(code, 5);
                 }
-            }
-        });
-
-        let userLikes = {};
-        connection.on('like', data => {
-            const code = userCountries[data.uniqueId];
-            if (!code) return;
-
-            let previousLikes = userLikes[data.uniqueId] || 0;
-            let newLikes = previousLikes + data.likeCount;
-
-            // Sum 1 point per 100 taps
-            let newPoints = Math.floor(newLikes / 100) - Math.floor(previousLikes / 100);
-
-            if (newPoints > 0) {
-                addPointToFlag(code, newPoints);
-            }
-            userLikes[data.uniqueId] = newLikes;
-        });
-
-        connection.on('follow', data => {
-            const code = userCountries[data.uniqueId];
-            if (code) {
-                addPointToFlag(code, 5);
-            }
-        });
+            });
 
             connection.on('share', data => {
                 // Compartir live NO suma puntos.
@@ -1276,19 +1286,12 @@
         const $raceContainer = $("#raceContainer");
         $raceContainer.append('<div class="finish-line-pattern"></div>');
 
-        const teamToGiftId = Object.entries(giftToTeam).reduce((acc, [id, team]) => {
-            acc[team] = id;
-            return acc;
-        }, {});
-
         allFlags.forEach(code => {
             const giftImg = teamGifts[code];
-            const giftId = teamToGiftId[code] || "";
             $raceContainer.append(`
-        <div class="track flag-item" data-code="${code}" id="flag-${code}" style="order: 0;">
+        <div class="track flag-item" data-code="${code}" id="flag-${code}">
             <div class="start-line">
                 <img class="gift-icon" src="${giftImg}.png" alt="${giftImg}">
-                ${giftId ? `<span style="color: yellow; font-size: 1.5vh; margin-right: 5px; font-weight: bold; text-shadow: 1px 1px 2px black;">ID:${giftId}</span>` : ''}
                 <img class="flag-img" src="https://flagcdn.com/w160/${countryIso[code]}.png" alt="${code}">
                 <span class="counter">0</span>
             </div>
@@ -1442,8 +1445,8 @@
             setTimeout(() => $counter.css("transform", "scale(1)"), 200);
 
             const $horse = $flag.find(".horse-gif");
-            $horse.css({"transform": "translateY(-10%) scale(1.3) translateX(10px)", "transition": "transform 0.1s"});
-            setTimeout(() => $horse.css({"transform": "translateY(-10%) scale(1) translateX(0)"}), 100);
+            $horse.css({ "transform": "translateY(-10%) scale(1.3) translateX(10px)", "transition": "transform 0.1s" });
+            setTimeout(() => $horse.css({ "transform": "translateY(-10%) scale(1) translateX(0)" }), 100);
 
             spawnHorseParticles($horse);
 
@@ -1451,29 +1454,28 @@
             checkLeader();
         }
 
-        function sortTracks() {
-            const tracks = $(".track").get();
-            tracks.sort((a, b) => {
-                const codeA = $(a).attr("data-code");
-                const codeB = $(b).attr("data-code");
-                const ptsA = horseGifts[codeA] || 0;
-                const ptsB = horseGifts[codeB] || 0;
-                return ptsB - ptsA; // Descending
-            });
-            tracks.forEach((track, index) => {
-                $(track).css("order", index);
-            });
-        }
-
         function updateRacePositions() {
+            // Ordenar por puntos (títulos)
+            let sortedFlags = [...allFlags].sort((a, b) => {
+                let ptsA = horseGifts[a] || 0;
+                let ptsB = horseGifts[b] || 0;
+                if (ptsA === ptsB) {
+                    return allFlags.indexOf(a) - allFlags.indexOf(b);
+                }
+                return ptsB - ptsA;
+            });
+
             $(".track").each(function () {
                 let code = $(this).attr("data-code");
                 let gifts = horseGifts[code] || 0;
                 let steps = gifts % 20;
                 let percentage = (steps / 20) * 85;
                 $(this).find(".horse-wrapper").css("left", (10 + percentage) + "%");
+                
+                // Aplicar el nuevo orden visual
+                let orderIndex = sortedFlags.indexOf(code);
+                $(this).css('order', orderIndex);
             });
-            sortTracks();
         }
 
         function checkLeader() {
@@ -1635,15 +1637,15 @@
         });
 
         // HACK DEFINITIVO: Mantener activa la pestaña usando un Audio HTML5 y override de rAF
-        (function() {
+        (function () {
             // 1. Sobreescribir requestAnimationFrame para que las animaciones de jQuery/CSS no se pausen
             // al minimizar, ya que rAF nativo se detiene por completo.
-            window.requestAnimationFrame = function(callback) {
-                return window.setTimeout(function() {
+            window.requestAnimationFrame = function (callback) {
+                return window.setTimeout(function () {
                     callback(performance.now());
                 }, 1000 / 60);
             };
-            window.cancelAnimationFrame = function(id) {
+            window.cancelAnimationFrame = function (id) {
                 window.clearTimeout(id);
             };
 
