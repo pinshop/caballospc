@@ -20,7 +20,7 @@
         }
 
         .inputFields {
-            position: fixed;
+            position: relative;
             top: 0;
             left: 0;
             width: 100%;
@@ -44,7 +44,7 @@
 
         #zona {
             position: relative;
-            margin: 80px auto 0;
+            margin: 20px auto 0;
             width: 450px;
             /* Formato más vertical inicial */
             height: 800px;
@@ -729,6 +729,16 @@
 <body>
     <div id="exitMobileBtn">X</div>
 
+    <div id="historyTableContainer" class="draggable-item" style="position:fixed; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.8); border: 2px solid gold; border-radius: 10px; color: white; padding: 10px; z-index: 1000; box-shadow: 0 0 15px gold; cursor: move;">
+        <h3 style="margin: 0 0 10px 0; text-align: center; color: gold; text-shadow: 1px 1px 0 #000;">🏆 CAMPEONES 🏆</h3>
+        <div id="historyGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 250px; text-align: center; font-family: sans-serif; font-weight: bold;">
+        </div>
+    </div>
+
+    <button id="finishRaceBtn" style="position: fixed; right: 20px; top: 50%; transform: translateY(-50%); background: #ff0000; color: white; border: 2px solid white; border-radius: 10px; padding: 8px 12px; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 1000; box-shadow: 0 0 10px red; text-transform: uppercase;">
+        🏁 Finalizar
+    </button>
+
     <div class="inputFields">
         <p>Escribe el <b>@usuario</b> en vivo:</p>
         <input type="text" id="uniqueIdInput" placeholder="@nombre">
@@ -743,11 +753,9 @@
         <select id="timerMinutes" style="margin-left: 10px;">
             <option value="5">5 min</option>
             <option value="10">10 min</option>
-            <option value="20">20 min</option>
-            <option value="30">30 min</option>
+            <option value="15">15 min</option>
         </select>
         <input type="button" id="addTimerBtn" value="Agregar contador">
-        <input type="button" id="mobileBtn" value="📱 Celular">
         <div id="stateText"></div>
     </div>
 
@@ -1083,8 +1091,7 @@
             "panama": "panama", "panamá": "panama",
             "uruguay": "uruguay",
             "argentina": "argentina",
-            "peru": "peru", "perú": "peru",
-            "paraguay": "paraguay"
+            "peru": "peru", "perú": "peru"
         };
         const userCountries = {};
 
@@ -1092,7 +1099,7 @@
             'colombia': 'co', 'guatemala': 'gt', 'mexico': 'mx', 'salvador': 'sv',
             'chile': 'cl', 'nicaragua': 'ni', 'cuba': 'cu', 'dominicana': 'do',
             'ecuador': 'ec', 'venezuela': 've', 'bolivia': 'bo', 'costarica': 'cr',
-            'honduras': 'hn', 'panama': 'pa', 'uruguay': 'uy', 'argentina': 'ar', 'peru': 'pe', 'paraguay': 'py'
+            'honduras': 'hn', 'panama': 'pa', 'uruguay': 'uy', 'argentina': 'ar', 'peru': 'pe'
         };
 
         function mostrarAvisoPais(nickname, countryName) {
@@ -1159,8 +1166,7 @@
                 7032: 'panama',
                 5827: 'uruguay',
                 19446: 'argentina',
-                13651: 'peru',
-                58485: 'paraguay'
+                13651: 'peru'
             };
 
             connection.on("gift", data => {
@@ -1274,11 +1280,11 @@
         setupConnectionEvents();
 
         // === INICIALIZACIÓN DE PISTAS (CARRERA) ===
-        const allFlags = ['colombia', 'guatemala', 'mexico', 'salvador', 'chile', 'nicaragua', 'cuba', 'dominicana', 'paraguay', 'ecuador', 'venezuela', 'bolivia', 'costarica', 'honduras', 'panama', 'uruguay', 'argentina', 'peru'];
+        const allFlags = ['colombia', 'guatemala', 'mexico', 'salvador', 'chile', 'nicaragua', 'cuba', 'dominicana', 'ecuador', 'venezuela', 'bolivia', 'costarica', 'honduras', 'panama', 'uruguay', 'argentina', 'peru'];
 
         const teamGifts = {
             'colombia': 'rose', 'guatemala': 'tiktok', 'mexico': 'pop', 'salvador': 'gg', 'chile': 'increible',
-            'nicaragua': 'glow', 'cuba': 'freestyle', 'dominicana': 'oldies', 'paraguay': 'star',
+            'nicaragua': 'glow', 'cuba': 'freestyle', 'dominicana': 'oldies',
             'ecuador': 'cake', 'venezuela': 'teadoro', 'bolivia': 'alas', 'costarica': 'blanca',
             'honduras': 'mazorca', 'panama': 'maracas', 'uruguay': 'cono', 'argentina': 'wink', 'peru': 'popular'
         };
@@ -1304,6 +1310,7 @@
         });
 
         $("#avisoContainer").draggable();
+        $("#historyTableContainer").draggable();
 
         // Mover caballos si cambia la meta manualmente
         $("#raceGoal").on("input", function () {
@@ -1385,6 +1392,12 @@
             $(".crown-badge").hide();
             if (top3[0] && top3[0].pts > 0) {
                 $(`#flag-${top3[0].code} .crown-badge`).show();
+                
+                // Guardar campeón histórico
+                let history = JSON.parse(localStorage.getItem('raceHistory') || '{}');
+                history[top3[0].code] = (history[top3[0].code] || 0) + 1;
+                localStorage.setItem('raceHistory', JSON.stringify(history));
+                if(typeof updateHistoryTable === "function") updateHistoryTable();
             }
 
             const $podio = $('<div class="podio-container"></div>');
@@ -1423,7 +1436,12 @@
             setTimeout(() => {
                 $podio.fadeOut(1000, function () {
                     $(this).remove();
+                    // Limpiar el objeto de puntajes reales
+                    for (let code in horseGifts) {
+                        horseGifts[code] = 0;
+                    }
                     $(".flag-item .counter").text("0");
+                    updateRacePositions(); // Para que los caballos regresen al inicio
                     checkLeader();
                     iniciarTemporizadorGlobal(); // Reinicia auto-contador
                 });
@@ -1678,6 +1696,53 @@
                     addPointToFlag(allFlags[idx], 1);
                 }
             }
+        });
+
+        // LÓGICA DE TABLA DE CAMPEONES Y BOTÓN FINALIZAR
+        function updateHistoryTable() {
+            let history = JSON.parse(localStorage.getItem('raceHistory') || '{}');
+            let sortedHistory = Object.keys(history).map(code => ({ code, wins: history[code] })).sort((a, b) => b.wins - a.wins);
+            
+            let grid = $("#historyGrid");
+            grid.empty();
+            
+            // Mostrar los primeros 9 (3x3 grid)
+            for(let i = 0; i < 9; i++) {
+                if (sortedHistory[i]) {
+                    let h = sortedHistory[i];
+                    grid.append(`
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 5px; padding: 5px; display: flex; flex-direction: column; align-items: center; box-shadow: inset 0 0 5px rgba(0,0,0,0.5);">
+                            <img src="https://flagcdn.com/w40/${countryIso[h.code]}.png" style="height:25px; border-radius:3px; margin-bottom: 5px;" alt="${h.code}"> 
+                            <span style="color: gold; font-size: 16px; text-shadow: 1px 1px 0 #000;">⚽ ${h.wins}</span>
+                        </div>
+                    `);
+                } else {
+                    grid.append(`
+                        <div style="background: rgba(255,255,255,0.05); border-radius: 5px; padding: 5px; display: flex; flex-direction: column; align-items: center; opacity: 0.3;">
+                            <div style="height:25px; width:35px; background:rgba(255,255,255,0.2); border-radius:3px; margin-bottom: 5px;"></div>
+                            <span style="color: gold; font-size: 16px; text-shadow: 1px 1px 0 #000;">⚽ 0</span>
+                        </div>
+                    `);
+                }
+            }
+        }
+
+        $("#historyTableContainer").on("contextmenu", function(e) {
+            e.preventDefault();
+            if(confirm("¿Estás seguro de borrar el historial de campeones?")) {
+                localStorage.removeItem('raceHistory');
+                updateHistoryTable();
+            }
+        });
+
+        $("#finishRaceBtn").click(function() {
+            if (globalTimerInterval) clearInterval(globalTimerInterval);
+            $("#globalAutoTimer").text("00:00");
+            mostrarPodio();
+        });
+
+        $(document).ready(() => {
+            updateHistoryTable();
         });
     </script>
 </body>
