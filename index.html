@@ -787,6 +787,22 @@
         </div>
     </div>
 
+    <!-- Context Menu para Cambiar País -->
+    <div id="flagContextMenu" style="display:none; position:fixed; background:rgba(0,0,0,0.95); border:2px solid white; border-radius:10px; padding:10px; z-index:10001; color:white; font-family: sans-serif; box-shadow: 0 0 15px rgba(255,255,255,0.5);">
+        <h4 style="margin-top:0; margin-bottom:10px; text-align:center; border-bottom:1px solid gray; padding-bottom:5px;">Cambiar País</h4>
+        <div id="flagContextOptions" style="display:flex; flex-direction:column; gap:5px;"></div>
+        <button id="flagContextCloseBtn" style="margin-top:10px; width:100%; background:red; color:white; border:none; padding:5px; border-radius:5px; cursor:pointer;">Cancelar</button>
+    </div>
+
+    <!-- Modal para editar puntos -->
+    <div id="pointModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.9); border:2px solid white; border-radius:10px; padding:20px; z-index:10000; color:white; text-align:center; font-family: sans-serif;">
+        <h3 id="pointModalTitle" style="margin-top:0;">Cambiar puntos</h3>
+        <p style="font-size:14px; margin-bottom:10px;">Ingresa la cantidad de <b>PUNTOS</b></p>
+        <input type="number" id="pointModalInput" value="0" style="font-size:18px; width:100px; text-align:center; padding:5px;"><br><br>
+        <button id="pointModalSetBtn" style="background:blue; color:white; border:none; padding:10px 15px; margin:5px; border-radius:5px; cursor:pointer; font-weight:bold;">Fijar Puntos</button>
+        <button id="pointModalCloseBtn" style="background:red; color:white; border:none; padding:10px 15px; margin:5px; border-radius:5px; cursor:pointer; font-weight:bold;">Cancelar</button>
+    </div>
+
     <script>
         // CONEXIÓN (TikFinity local WebSocket)
         class TikFinityConnection {
@@ -1091,7 +1107,17 @@
             "panama": "panama", "panamá": "panama",
             "uruguay": "uruguay",
             "argentina": "argentina",
-            "peru": "peru", "perú": "peru"
+            "peru": "peru", "perú": "peru",
+            "paraguay": "paraguay",
+            "brasil": "brasil",
+            "españa": "espana", "espana": "espana",
+            "usa": "usa", "estados unidos": "usa",
+            "puerto rico": "puertorico", "puertorico": "puertorico",
+            "portugal": "portugal",
+            "italia": "italia",
+            "francia": "francia",
+            "alemania": "alemania",
+            "japon": "japon", "japón": "japon"
         };
         const userCountries = {};
 
@@ -1099,7 +1125,29 @@
             'colombia': 'co', 'guatemala': 'gt', 'mexico': 'mx', 'salvador': 'sv',
             'chile': 'cl', 'nicaragua': 'ni', 'cuba': 'cu', 'dominicana': 'do',
             'ecuador': 'ec', 'venezuela': 've', 'bolivia': 'bo', 'costarica': 'cr',
-            'honduras': 'hn', 'panama': 'pa', 'uruguay': 'uy', 'argentina': 'ar', 'peru': 'pe'
+            'honduras': 'hn', 'panama': 'pa', 'uruguay': 'uy', 'argentina': 'ar', 'peru': 'pe',
+            'paraguay': 'py', 'brasil': 'br', 'espana': 'es', 'usa': 'us', 'puertorico': 'pr',
+            'portugal': 'pt', 'italia': 'it', 'francia': 'fr', 'alemania': 'de', 'japon': 'jp'
+        };
+
+        let giftToTeam = {
+            5655: 'colombia',
+            5269: 'guatemala',
+            19438: 'mexico',
+            6064: 'salvador',
+            15232: 'chile',
+            6788: 'nicaragua',
+            19441: 'cuba',
+            19439: 'dominicana',
+            6784: 'ecuador',
+            15231: 'venezuela',
+            15104: 'bolivia',
+            8239: 'costarica',
+            7096: 'honduras',
+            7032: 'panama',
+            5827: 'uruguay',
+            19446: 'argentina',
+            13651: 'peru'
         };
 
         function mostrarAvisoPais(nickname, countryName) {
@@ -1149,25 +1197,19 @@
             };
             const giftProgress = {};
 
-            const giftToTeam = {
-                5655: 'colombia',
-                5269: 'guatemala',
-                19438: 'mexico',
-                6064: 'salvador',
-                15232: 'chile',
-                6788: 'nicaragua',
-                19441: 'cuba',
-                19439: 'dominicana',
-                6784: 'ecuador',
-                15231: 'venezuela',
-                15104: 'bolivia',
-                8239: 'costarica',
-                7096: 'honduras',
-                7032: 'panama',
-                5827: 'uruguay',
-                19446: 'argentina',
-                13651: 'peru'
-            };
+            let globalGiftsMap = {};
+            $.getJSON("gifts completo.json", function(data) {
+                if(Array.isArray(data)) {
+                    data.forEach(g => {
+                        globalGiftsMap[Number(g.id)] = Number(g.valor);
+                    });
+                }
+            }).fail(function() {
+                console.warn("No se pudo cargar gifts completo.json");
+            });
+
+
+
 
             connection.on("gift", data => {
                 const giftId = Number(data.giftId);
@@ -1229,15 +1271,18 @@
                     const code = userCountries[data.uniqueId];
                     if (!code) return;
 
-                    const pointsPerGift = giftPoints[giftId];
-                    if (!pointsPerGift) return;
+                    let stepsPerGift = globalGiftsMap[giftId];
+                    if (stepsPerGift === undefined) {
+                        stepsPerGift = giftPoints[giftId];
+                    }
+                    if (!stepsPerGift) return;
 
                     if (deltaCount > 0) {
-                        addPointToFlag(code, deltaCount * pointsPerGift);
+                        addPointToFlag(code, deltaCount * stepsPerGift);
 
-                        if (giftId === 5879 || pointsPerGift === 120) {
+                        if (giftId === 5879 || stepsPerGift === 120) {
                             new Audio('point.mp3').play().catch(e => console.log("Audio error:", e));
-                        } else if (pointsPerGift > 30) {
+                        } else if (stepsPerGift > 30) {
                             new Audio('turbo.mp3').play().catch(e => console.log("Audio error:", e));
                         }
                     }
@@ -1311,6 +1356,33 @@
 
         $("#avisoContainer").draggable();
         $("#historyTableContainer").draggable();
+
+        // Modal Logic para Editar Puntos
+        let currentEditCode = null;
+        $(document).on("dblclick", ".track", function(e) {
+            e.stopPropagation();
+            currentEditCode = $(this).attr("data-code");
+            const currentPoints = Math.floor((horseGifts[currentEditCode] || 0) / 20);
+            $("#pointModalTitle").text("Puntos de " + currentEditCode.toUpperCase());
+            $("#pointModalInput").val(currentPoints); // <- Se asigna el valor actual
+            $("#pointModal").fadeIn(200);
+        });
+
+
+
+        $(document).on("click", "#pointModalSetBtn", function() {
+            if (!currentEditCode) return;
+            let val = parseInt($("#pointModalInput").val(), 10) || 0;
+            horseGifts[currentEditCode] = 0; // reset
+            addPointToFlag(currentEditCode, val * 20);
+            $("#pointModal").fadeOut(200);
+            currentEditCode = null;
+        });
+
+        $(document).on("click", "#pointModalCloseBtn", function() {
+            $("#pointModal").fadeOut(200);
+            currentEditCode = null;
+        });
 
         // Mover caballos si cambia la meta manualmente
         $("#raceGoal").on("input", function () {
@@ -1740,6 +1812,86 @@
             $("#globalAutoTimer").text("00:00");
             mostrarPodio();
         });
+
+        // Context Menu para Reemplazo de Bandera
+        const extraCountriesList = ['paraguay', 'brasil', 'espana', 'usa', 'puertorico', 'portugal', 'italia', 'francia', 'alemania', 'japon'];
+        let currentRightClickCode = null;
+
+        $(document).on("contextmenu", ".track", function(e) {
+            e.preventDefault();
+            currentRightClickCode = $(this).attr("data-code");
+            
+            $("#flagContextOptions").empty();
+            
+            extraCountriesList.forEach(c => {
+                const name = c.toUpperCase();
+                const iso = countryIso[c];
+                
+                const $opt = $(`
+                    <div class="flag-replace-option" data-newcode="${c}" style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:5px; background:rgba(255,255,255,0.1); border-radius:5px;">
+                        <img src="https://flagcdn.com/w160/${iso}.png" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+                        <span style="font-weight:bold; font-size: 14px;">${name}</span>
+                    </div>
+                `);
+                
+                $opt.hover(
+                    function() { $(this).css("background", "rgba(255,255,255,0.3)"); },
+                    function() { $(this).css("background", "rgba(255,255,255,0.1)"); }
+                );
+                
+                $opt.click(function(ev) {
+                    ev.stopPropagation();
+                    const newCode = $(this).attr("data-newcode");
+                    replaceFlag(currentRightClickCode, newCode);
+                    $("#flagContextMenu").fadeOut(100);
+                });
+                
+                $("#flagContextOptions").append($opt);
+            });
+            
+            $("#flagContextMenu").css({
+                top: e.clientY + 'px',
+                left: e.clientX + 'px'
+            }).fadeIn(100);
+        });
+
+        $("#flagContextCloseBtn").click(function() {
+            $("#flagContextMenu").fadeOut(100);
+        });
+
+        $(document).click(function(e) {
+            if (!$(e.target).closest("#flagContextMenu").length && !$(e.target).closest(".track").length) {
+                $("#flagContextMenu").fadeOut(100);
+            }
+        });
+
+        function replaceFlag(oldCode, newCode) {
+            if (oldCode === newCode) return;
+            
+            const $track = $("#flag-" + oldCode);
+            $track.attr("id", "flag-" + newCode);
+            $track.attr("data-code", newCode);
+            
+            const newIso = countryIso[newCode];
+            $track.find(".flag-img").attr("src", "https://flagcdn.com/w160/" + newIso + ".png");
+            $track.find(".flag-img").attr("alt", newCode);
+            
+            horseGifts[newCode] = horseGifts[oldCode] || 0;
+            delete horseGifts[oldCode];
+            
+            const idx = allFlags.indexOf(oldCode);
+            if (idx !== -1) {
+                allFlags[idx] = newCode;
+            }
+            
+            for (const [giftId, teamCode] of Object.entries(giftToTeam)) {
+                if (teamCode === oldCode) {
+                    giftToTeam[giftId] = newCode;
+                }
+            }
+
+            updateRacePositions();
+        }
 
         $(document).ready(() => {
             updateHistoryTable();
